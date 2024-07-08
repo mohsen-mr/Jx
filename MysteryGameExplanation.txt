@@ -1,0 +1,248 @@
+
+### Import Statement
+```java
+import java.util.*;
+```
+- This imports all the classes from the `java.util` package, including `List`, `ArrayList`, `Map`, `HashMap`, `Scanner`, `Random`, and `Collections`.
+
+### Base Class for All Game Entities
+```java
+// Base class for all game entities
+abstract class GameEntity {
+    String name;
+
+    GameEntity(String name) {
+        this.name = name;
+    }
+
+    abstract void displayInfo();
+}
+```
+- `GameEntity` is an abstract class that defines a common structure for all game entities.
+- It has a single field `name` to store the name of the entity.
+- It has a constructor to initialize the `name`.
+- It declares an abstract method `displayInfo()` that must be implemented by subclasses.
+
+### Participant Class
+```java
+// Participant class inheriting from GameEntity
+class Participant extends GameEntity {
+    List<String> clues;
+
+    Participant(String name) {
+        super(name);
+        this.clues = new ArrayList<>();
+    }
+
+    void receiveClue(String clue) {
+        clues.add(clue);
+    }
+
+    @Override
+    void displayInfo() {
+        System.out.println("Participant: " + name);
+    }
+}
+```
+- `Participant` is a subclass of `GameEntity`.
+- It has an additional field `clues`, a list to store clues.
+- Its constructor calls the superclass constructor to initialize `name` and initializes the `clues` list.
+- It has a method `receiveClue` to add clues to the list.
+- It overrides the `displayInfo` method to print participant information.
+
+### Hideout Class
+```java
+// Hideout class inheriting from GameEntity
+class Hideout extends GameEntity {
+    Hideout(String name) {
+        super(name);
+    }
+
+    @Override
+    void displayInfo() {
+        System.out.println("Hideout: " + name);
+    }
+}
+```
+- `Hideout` is a subclass of `GameEntity`.
+- It uses the superclass constructor to initialize `name`.
+- It overrides the `displayInfo` method to print hideout information.
+
+### Chamber Class
+```java
+// Chamber class inheriting from GameEntity
+class Chamber extends GameEntity {
+    Chamber(String name) {
+        super(name);
+    }
+
+    @Override
+    void displayInfo() {
+        System.out.println("Chamber: " + name);
+    }
+}
+```
+- `Chamber` is a subclass of `GameEntity`.
+- It uses the superclass constructor to initialize `name`.
+- It overrides the `displayInfo` method to print chamber information.
+
+### MysteryGame Class
+```java
+class MysteryGame {
+    List<Participant> participants = new ArrayList<>();
+    List<Hideout> hideouts = new ArrayList<>(Arrays.asList(
+        new Hideout("Behind the curtain"),
+        new Hideout("Under the rug"),
+        new Hideout("In the closet"),
+        new Hideout("Under the bed"),
+        new Hideout("On the shelf"),
+        new Hideout("In the drawer")
+    ));
+    List<Chamber> chambers = new ArrayList<>(Arrays.asList(
+        new Chamber("Living room"),
+        new Chamber("Kitchen"),
+        new Chamber("Library"),
+        new Chamber("Bathroom"),
+        new Chamber("Bedroom"),
+        new Chamber("Dining room"),
+        new Chamber("Garage"),
+        new Chamber("Attic"),
+        new Chamber("Basement")
+    ));
+
+    Map<String, String> secretCombination = new HashMap<>();
+```
+- `MysteryGame` is a class that sets up and manages the game.
+- It has lists of participants, hideouts, and chambers.
+- `secretCombination` is a map to store the secret combination of participant, hideout, and chamber.
+
+### Setup Game Method
+```java
+void setupGame() {
+    // Add participants
+    addParticipants("Alice", "Bob", "Charlie", "Diana", "Eve", "Frank");
+
+    // Prepare and shuffle clues
+    List<String> allClues = new ArrayList<>();
+    for (Participant participant : participants) {
+        allClues.add(participant.name);
+    }
+    for (Hideout hideout : hideouts) {
+        allClues.add(hideout.name);
+    }
+    for (Chamber chamber : chambers) {
+        allClues.add(chamber.name);
+    }
+
+    Collections.shuffle(allClues);
+
+    // Set secret combination
+    String secretParticipant = participants.get(new Random().nextInt(participants.size())).name;
+    String secretHideout = hideouts.get(new Random().nextInt(hideouts.size())).name;
+    String secretChamber = chambers.get(new Random().nextInt(chambers.size())).name;
+
+    secretCombination.put("Participant", secretParticipant);
+    secretCombination.put("Hideout", secretHideout);
+    secretCombination.put("Chamber", secretChamber);
+
+    // Distribute clues
+    allocateClues(allClues);
+}
+```
+- `setupGame` initializes the game by adding participants, preparing clues, setting the secret combination, and distributing clues.
+- It calls `addParticipants` to add participants.
+- It prepares a list of all clues by adding participant names, hideout names, and chamber names.
+- It shuffles the clues.
+- It randomly selects a participant, hideout, and chamber to form the secret combination.
+- It distributes clues to participants by calling `allocateClues`.
+
+### Play Game Method
+```java
+void playGame() {
+    Scanner inputScanner = new Scanner(System.in);
+    int currentParticipantIndex = 0;
+
+    while (true) {
+        Participant currentParticipant = participants.get(currentParticipantIndex);
+        System.out.println(currentParticipant.name + "'s turn. Type 'roll' to roll the dice:");
+        String userInput = inputScanner.nextLine();
+
+        if (userInput.equalsIgnoreCase("roll")) {
+            int diceResult = rollDice();
+            System.out.println("You rolled a " + diceResult);
+
+            // Implement movement rules here if needed
+
+            System.out.println("Make your guess (format: Participant,Hideout,Chamber):");
+            String guess = inputScanner.nextLine();
+            String[] guessParts = guess.split(",");
+            if (guessParts.length == 3) {
+                evaluateGuess(currentParticipant, guessParts[0], guessParts[1], guessParts[2]);
+            }
+        }
+
+        currentParticipantIndex = (currentParticipantIndex + 1) % participants.size();
+    }
+}
+```
+- `playGame` handles the main game loop where participants take turns.
+- It uses a `Scanner` to get user input.
+- It asks the current participant to roll the dice and make a guess.
+- If the guess format is correct, it calls `evaluateGuess` to check the guess.
+- It updates the current participant index to the next participant in a circular manner.
+
+### Add Participants Method
+```java
+private void addParticipants(String... names) {
+    for (String name : names) {
+        participants.add(new Participant(name));
+    }
+}
+```
+- `addParticipants` adds participants to the game.
+- It takes a variable number of participant names and adds each one to the participants list.
+
+### Allocate Clues Method
+```java
+private void allocateClues(List<String> allClues) {
+    int index = 0;
+    for (Participant participant : participants) {
+        while (participant.clues.size() < 3 && index < allClues.size()) {
+            String clue = allClues.get(index++);
+            if (!secretCombination.containsValue(clue)) {
+                participant.receiveClue(clue);
+            }
+        }
+    }
+}
+```
+- `allocateClues` distributes clues to participants.
+- Each participant receives up to 3 clues, ensuring no participant receives a clue that is part of the secret combination.
+
+### Roll Dice Method
+```java
+int rollDice() {
+    Random random = new Random();
+    return random.nextInt(6) + 1;
+}
+```
+- `rollDice` simulates rolling a six-sided dice.
+- It returns a random number between 1 and 6.
+
+### Evaluate Guess Method
+```java
+void evaluateGuess(Participant participant, String guessedParticipant, String guessedHideout, String guessedChamber) {
+    boolean correctGuess = guessedParticipant.equals(secretCombination.get("Participant")) &&
+            guessedHideout.equals(secretCombination.get("Hideout")) &&
+            guessedChamber.equals(secretCombination.get("Chamber"));
+
+    if (correctGuess) {
+        System.out.println("Congratulations " + participant.name + "! You solved the mystery!");
+        System.exit(0);
+    } else {
+        System.out.println("Wrong guess. Try again.");
+    }
+}
+```
+- `evaluateGuess` checks if the guess made by a participant is correct.
+- If the guess is correct, it congratulates the participant.
